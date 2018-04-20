@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -22,6 +25,24 @@ public class MockMergerController {
 
   long MERGER_DELAY = 200;
   long LINE_COUNT = 10000;
+  public static List<String> idList;
+  static {
+    FileReader fileReader = null;
+    try {
+      fileReader = new FileReader("10000users");
+      BufferedReader bufferedReader = new BufferedReader(fileReader);
+      idList = new ArrayList<String>();
+      String line = null;
+      while ((line = bufferedReader.readLine()) != null) {
+        idList.add(line);
+      }
+      bufferedReader.close();
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   @RequestMapping("/mockMerger")
   public CompletableFuture<Resp> suggestedUsers(@RequestParam(value="user_id") Long userId,
@@ -42,9 +63,8 @@ public class MockMergerController {
       return CompletableFuture.completedFuture(null);
     }
     int index = (int) ((Math.random() * LINE_COUNT + limit) % LINE_COUNT);
-    String[] idList= lines.skip(Math.max(0, index - 1)).toArray(String[]::new);
     for ( int i = 0; i < limit; i ++) {
-      int suggestedUserId = Integer.valueOf(idList[Math.min(i, idList.length)].trim());
+      int suggestedUserId = Integer.valueOf(idList.get(Math.min(index + i, idList.size() - 1)).trim());
       User user = new User().setId(suggestedUserId)
               .setDistance(100 * (float)Math.random())
               .setLastactivity("none")
