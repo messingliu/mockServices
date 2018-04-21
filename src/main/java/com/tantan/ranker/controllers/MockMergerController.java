@@ -58,7 +58,7 @@ public class MockMergerController {
     List<User> userList = new ArrayList<User>();
     int index = (int) ((Math.random() * LINE_COUNT + limit) % LINE_COUNT);
     for ( int i = 0; i < limit; i ++) {
-      int suggestedUserId = Integer.valueOf(idList.get(Math.min(index + i, idList.size() - 1)).trim());
+      int suggestedUserId = Integer.valueOf(idList.get(Math.min((index + i) % (int)LINE_COUNT, idList.size() - 1)).trim());
       User user = new User().setId(suggestedUserId)
               .setDistance(100 * (float)Math.random())
               .setLastactivity("none")
