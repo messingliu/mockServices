@@ -52,13 +52,14 @@ public class MockMergerController {
                                      @RequestParam(value="filter", defaultValue = "") String filter,
                                      @RequestParam(value="with") String with) throws InterruptedException {
     long start = System.currentTimeMillis();
+    long numLines = Math.max(LINE_COUNT, limit);
     Random random = new Random();
     Thread.sleep((long) (Math.max(50, Math.sqrt(500) * random.nextGaussian() + MERGER_DELAY))); // Gaussian random delay
 
     List<User> userList = new ArrayList<User>();
-    int index = (int) ((Math.random() * LINE_COUNT + limit) % LINE_COUNT);
+    int index = (int) ((Math.random() * numLines + limit) % numLines);
     for ( int i = 0; i < limit; i ++) {
-      int suggestedUserId = Integer.valueOf(idList.get(Math.min((index + i) % (int)LINE_COUNT, idList.size() - 1)).trim());
+      int suggestedUserId = Integer.valueOf(idList.get(Math.min((index + i) % (int)numLines, idList.size() - 1)).trim());
       User user = new User().setId(suggestedUserId)
               .setDistance(100 * (float)Math.random())
               .setLastactivity("none")
