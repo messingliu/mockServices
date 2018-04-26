@@ -59,7 +59,7 @@ public class MockMergerController {
     long numLines = Math.max(LINE_COUNT, limit);
     Random random = new Random();
     random.setSeed(System.currentTimeMillis());
-    Thread.sleep((long) (Math.max(50, Math.sqrt(500) * random.nextGaussian() + configureService.getMergerDelay()))); // Gaussian random delay
+    Thread.sleep((long) (Math.max(25, Math.sqrt(100) * random.nextGaussian() + configureService.getMergerDelay()))); // Gaussian random delay
 
     List<User> userList = new ArrayList<User>();
     int index = (int) ((Math.random() * numLines + limit) % numLines);
