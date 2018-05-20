@@ -49,7 +49,7 @@ public class MockMergerController {
     }
   }
 
-  @RequestMapping("/mockMerger")
+  @RequestMapping("/users")
   public CompletableFuture<Resp> suggestedUsers(@RequestParam(value="user_id") Long userId,
                                      @RequestParam(value="limit", defaultValue = "25") Integer limit,
                                      @RequestParam(value="search") String search,
@@ -66,9 +66,6 @@ public class MockMergerController {
     for ( int i = 0; i < limit; i ++) {
       long suggestedUserId = idList.get(Math.min((index + i) % (int)numLines, idList.size() - 1));
       User user = new User().setId(suggestedUserId)
-              .setDistance(100 * (float)Math.random())
-              .setLastactivity("none")
-              .setPopularity(100 * (float)Math.random())
               .setScore(100 * (float)Math.random())
               .setType("type");
       userList.add(user);
