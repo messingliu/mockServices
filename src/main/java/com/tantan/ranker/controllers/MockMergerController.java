@@ -27,7 +27,7 @@ public class MockMergerController {
   private static final Logger LOGGER = LoggerFactory.getLogger(MockMergerController.class);
 
   private static long LINE_COUNT = 10000;
-  private static List<Long> idList;
+  private static List<Long> idList = new ArrayList<>();
 
   @Autowired
   private ConfigureService configureService;
@@ -37,11 +37,13 @@ public class MockMergerController {
     try {
       fileReader = new FileReader("user_ids");
       BufferedReader bufferedReader = new BufferedReader(fileReader);
-      idList = new ArrayList<Long>();
       String line;
       while ((line = bufferedReader.readLine()) != null) {
-        idList.add(Long.parseLong(line.trim()));
+        try {
+          idList.add(Long.parseLong(line.trim()));
+        } catch (Throwable t) {}
       }
+      LOGGER.info("Read {} user ids", idList.size());
       bufferedReader.close();
       fileReader.close();
     } catch (Exception e) {
