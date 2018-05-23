@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 @RestController
 public class MockMergerController {
-  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(MockMergerController.class);
 
   private static long LINE_COUNT = 10000;
   private static List<Long> idList;
@@ -35,7 +35,7 @@ public class MockMergerController {
   static {
     FileReader fileReader;
     try {
-      fileReader = new FileReader("10000users");
+      fileReader = new FileReader("user_ids");
       BufferedReader bufferedReader = new BufferedReader(fileReader);
       idList = new ArrayList<Long>();
       String line;
@@ -45,7 +45,7 @@ public class MockMergerController {
       bufferedReader.close();
       fileReader.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Read file 'user_ids' error", e);
     }
   }
 
@@ -100,7 +100,7 @@ public class MockMergerController {
       for (int i = 0; i < limit; i++) {
         int index = random.nextInt(size);
         L1User user = new L1User();
-        user.setId(index);
+        user.setId(idList.get(index));
         user.setRawData(new String(rawData));
         userList.add(user);
       }
