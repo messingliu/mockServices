@@ -86,9 +86,9 @@ public class MockMergerController {
   @RequestMapping("/mockMerger2")
   public List<L1User> suggestedUsers2(@RequestParam(value="user_id") Long userId,
                                                 @RequestParam(value="limit", defaultValue = "25") Integer limit,
-                                                @RequestParam(value="search") String search,
+                                                @RequestParam(value="search", defaultValue = "") String search,
                                                 @RequestParam(value="filter", defaultValue = "") String filter,
-                                                @RequestParam(value="with") String with) throws InterruptedException {
+                                                @RequestParam(value="with", defaultValue = "") String with) throws InterruptedException {
     long start = System.currentTimeMillis();
     List<L1User> userList = new ArrayList<>();
     try {
