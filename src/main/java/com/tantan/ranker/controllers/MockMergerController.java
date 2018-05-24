@@ -39,9 +39,9 @@ public class MockMergerController {
       String line;
       while ((line = bufferedReader.readLine()) != null) {
         try {
-          Scanner scanner = new Scanner(line);
-          long userId = scanner.nextLong();
-          boolean male = 1 == scanner.nextInt();
+          String[] lines = line.split("\t");
+          long userId = Long.parseLong(lines[0].trim());
+          boolean male = 1 == Integer.parseInt(lines[1].trim());
           if (male) {
             maleUsers.add(userId);
           } else {
