@@ -15,10 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -27,7 +24,9 @@ public class MockMergerController {
   private static final Logger LOGGER = LoggerFactory.getLogger(MockMergerController.class);
 
   private static long LINE_COUNT = 10000;
-  private static List<Long> idList = new ArrayList<>();
+  private static Map<Long, Boolean> userGenderMap = new HashMap<>(); // true: male
+  private static List<Long> maleUsers = new ArrayList<>();
+  private static List<Long> femaleUsers = new ArrayList<>();
 
   @Autowired
   private ConfigureService configureService;
@@ -40,10 +39,18 @@ public class MockMergerController {
       String line;
       while ((line = bufferedReader.readLine()) != null) {
         try {
-          idList.add(Long.parseLong(line.trim()));
+          Scanner scanner = new Scanner(line);
+          long userId = scanner.nextLong();
+          boolean male = 1 == scanner.nextInt();
+          if (male) {
+            maleUsers.add(userId);
+          } else {
+            femaleUsers.add(userId);
+          }
+          userGenderMap.put(userId, male);
         } catch (Throwable t) {}
       }
-      LOGGER.info("Read {} user ids", idList.size());
+      LOGGER.info("Read {} user ids", userGenderMap.size());
       bufferedReader.close();
       fileReader.close();
     } catch (Exception e) {
@@ -66,7 +73,12 @@ public class MockMergerController {
     List<User> userList = new ArrayList<User>();
     int index = (int) ((Math.random() * numLines + limit) % numLines);
     for ( int i = 0; i < limit; i ++) {
-      long suggestedUserId = idList.get(Math.min((index + i) % (int)numLines, idList.size() - 1));
+      long suggestedUserId;
+      if ((i & 0x01) == 0) {
+        suggestedUserId = maleUsers.get(Math.min((index + i) % (int)numLines, maleUsers.size() - 1));
+      } else {
+        suggestedUserId = femaleUsers.get(Math.min((index + i) % (int)numLines, femaleUsers.size() - 1));
+      }
       User user = new User().setId(suggestedUserId)
               .setScore(100 * (float)Math.random())
               .setType("type");
@@ -96,13 +108,24 @@ public class MockMergerController {
       random.setSeed(System.currentTimeMillis());
       Thread.sleep((long) (Math.max(50, Math.sqrt(500) * random.nextGaussian() + configureService.getMergerDelay()))); // Gaussian random delay
 
-      final int size = idList.size();
       char[] rawData = new char[configureService.getResponseBytes() / 2];
       Arrays.fill(rawData, 'A');
+      Boolean male = userGenderMap.get(userId);
       for (int i = 0; i < limit; i++) {
-        int index = random.nextInt(size);
+        long suggestUserId;
+        if (male == null) {
+          if ((i & 0x01) == 0) {
+            suggestUserId = femaleUsers.get(random.nextInt(femaleUsers.size()));
+          } else {
+            suggestUserId = maleUsers.get(random.nextInt(maleUsers.size()));
+          }
+        } else if (male) {
+          suggestUserId = femaleUsers.get(random.nextInt(femaleUsers.size()));
+        } else {
+          suggestUserId = maleUsers.get(random.nextInt(maleUsers.size()));
+        }
         L1User user = new L1User();
-        user.setId(idList.get(index));
+        user.setId(suggestUserId);
         user.setRawData(new String(rawData));
         userList.add(user);
       }
