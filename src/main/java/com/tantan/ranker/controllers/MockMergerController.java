@@ -103,6 +103,7 @@ public class MockMergerController {
                                                 @RequestParam(value="with", defaultValue = "") String with) throws InterruptedException {
     long start = System.currentTimeMillis();
     Map<Long, L1User> userMap = new HashMap<>();
+    List<L1User> userList = new ArrayList<>();
     int repeated = 0;
     try {
       Random random = new Random();
@@ -132,6 +133,7 @@ public class MockMergerController {
           user.setId(suggestUserId);
           user.setRawData(new String(rawData));
           userMap.put(suggestUserId, user);
+          userList.add(user);
         }
       }
     } catch (Exception e) {
@@ -140,7 +142,7 @@ public class MockMergerController {
       LOGGER.info("[LogType: Merger][ClientName: suggestedUsers2][ResponseTime: {}] Repeated={}", System.currentTimeMillis() - start, repeated);
     }
 
-    return new ArrayList<>(userMap.values());
+    return userList;
   }
 
   @RequestMapping("/mockDelay")
