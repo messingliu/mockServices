@@ -102,7 +102,8 @@ public class MockMergerController {
                                                 @RequestParam(value="filter", defaultValue = "") String filter,
                                                 @RequestParam(value="with", defaultValue = "") String with) throws InterruptedException {
     long start = System.currentTimeMillis();
-    List<L1User> userList = new ArrayList<>();
+    Map<Long, L1User> userMap = new HashMap<>();
+    int repeated = 0;
     try {
       Random random = new Random();
       random.setSeed(System.currentTimeMillis());
@@ -111,7 +112,7 @@ public class MockMergerController {
       char[] rawData = new char[configureService.getResponseBytes() / 2];
       Arrays.fill(rawData, 'A');
       Boolean male = userGenderMap.get(userId);
-      for (int i = 0; i < limit; i++) {
+      for (int i = 0; userMap.size() < limit; i++) {
         long suggestUserId;
         if (male == null) {
           if ((i & 0x01) == 0) {
@@ -124,18 +125,22 @@ public class MockMergerController {
         } else {
           suggestUserId = maleUsers.get(random.nextInt(maleUsers.size()));
         }
-        L1User user = new L1User();
-        user.setId(suggestUserId);
-        user.setRawData(new String(rawData));
-        userList.add(user);
+        if (userMap.containsKey(suggestUserId)) {
+          repeated++;
+        } else {
+          L1User user = new L1User();
+          user.setId(suggestUserId);
+          user.setRawData(new String(rawData));
+          userMap.put(suggestUserId, user);
+        }
       }
     } catch (Exception e) {
       LOGGER.error("suggestedUsers2 fail", e);
     } finally {
-      LOGGER.info("[LogType: Merger][ClientName: suggestedUsers2][ResponseTime: {}]", System.currentTimeMillis() - start);
+      LOGGER.info("[LogType: Merger][ClientName: suggestedUsers2][ResponseTime: {}] Repeated={}", System.currentTimeMillis() - start, repeated);
     }
 
-    return userList;
+    return new ArrayList<>(userMap.values());
   }
 
   @RequestMapping("/mockDelay")
