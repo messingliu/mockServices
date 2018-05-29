@@ -1,6 +1,8 @@
 package com.tantan.ranker.controllers;
 
+import avro.shaded.com.google.common.collect.Lists;
 import com.tantan.ranker.models.*;
+import com.tantan.ranker.models.ai.*;
 import com.tantan.ranker.service.ConfigureService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,6 +145,92 @@ public class MockMergerController {
     }
 
     return userList;
+  }
+
+
+  @RequestMapping("/candidates")
+  public AIResp suggestedUsers3(@RequestParam(value = "user_id") Long userId,
+                                @RequestParam(value = "limit", defaultValue = "25") Integer limit) {
+
+    long start = System.currentTimeMillis();
+    AIResp resp = new AIResp();
+    resp.setMeta(new Meta(200, "OK"));
+    AIData data = new AIData();
+    resp.setData(data);
+    UserInfoResponse userInfo = new UserInfoResponse();
+    data.setUserInfo(userInfo);
+    userInfo.setReason("");
+    userInfo.setStatus(0);
+    userInfo.setType("ALL");
+    Map<String, String> record = new HashMap<>();
+    record.put(UserInfoKey.FeatureInfoKey.LOOKING_FOR_GENDER.getName(), Integer.toString(Gender.FEMALE.getName()));
+    userInfo.setRecord(record);
+
+    try {
+      Random random = new Random();
+      random.setSeed(System.currentTimeMillis());
+      Thread.sleep((long) (Math.max(10, Math.sqrt(50) * random.nextGaussian() + 20))); // Gaussian random delay
+
+      List<UserSuggestRecord> suggestedUsers = Lists.newArrayList();
+      data.setUserSuggested(suggestedUsers);
+      Boolean male = userGenderMap.get(userId);
+      male = male == null ? false : male;
+      List<Long> suggestUserIds = getSuggestUserIds(male, limit);
+      data.setUserSuggested(getSuggestUsers(suggestUserIds, ! male));
+      List<Long> boostUserIds = getSuggestUserIds(male, (int)(limit * 0.01));
+      data.setUserBoosted(getSuggestUsers(boostUserIds, ! male));
+      data.setSuperLiked(boostUserIds.size() > 0 ? Lists.newArrayList(boostUserIds.get(0)) : Collections.emptyList());
+    } catch (Exception e) {
+      LOGGER.error("suggestedUsers3 fail", e);
+      resp.setMeta(new Meta(500, "ERROR"));
+    } finally {
+      LOGGER.info("[LogType: Merger][ClientName: suggestedUsers3][ResponseTime: {}] Repeated={}", System.currentTimeMillis() - start);
+    }
+    resp.setExtra(new Extra(false, data.getUserSuggested() == null ? 0 : data.getUserSuggested().size()));
+
+    return resp;
+  }
+
+  private List<Long> getSuggestUserIds(boolean male, int limit) {
+    List<Long> userIds = Lists.newArrayList();
+    if (limit <=0 || limit > 100000) {
+      return userIds;
+    }
+    Set<Long> set = new HashSet<>();
+    List<Long> userList = male ? femaleUsers : maleUsers;
+    Random random = new Random();
+    random.setSeed(System.currentTimeMillis());
+    while (set.size() < limit) {
+      Long id = userList.get(random.nextInt(userList.size()));
+      if (! set.contains(id)) {
+        set.add(id);
+        userIds.add(id);
+      }
+    }
+
+    return userIds;
+  }
+
+  private List<UserSuggestRecord> getSuggestUsers(List<Long> userIds, boolean male) {
+    if (userIds == null) {
+      return Collections.emptyList();
+    }
+    List<UserSuggestRecord> users = Lists.newArrayList();
+    Random random = new Random();
+    random.setSeed(System.currentTimeMillis());
+    for (Long userId : userIds) {
+      UserSuggestRecord suggested = new UserSuggestRecord();
+      suggested.setId(userId);
+      suggested.setScore(random.nextFloat());
+      suggested.setDistance(random.nextFloat() * 10000);
+      suggested.setPolularity(random.nextFloat());
+      suggested.setStudy(random.nextInt(2));
+      suggested.setBoostLevel(random.nextInt(5));
+      suggested.setGender(male ? Gender.MALE.getName() : Gender.FEMALE.getName());
+      users.add(suggested);
+    }
+
+    return users;
   }
 
   @RequestMapping("/mockDelay")
