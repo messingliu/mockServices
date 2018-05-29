@@ -12,14 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 @RestController
 public class MockMergerController {
@@ -163,7 +158,9 @@ public class MockMergerController {
     userInfo.setStatus(0);
     userInfo.setType("ALL");
     Map<String, String> record = new HashMap<>();
-    record.put(UserInfoKey.FeatureInfoKey.LOOKING_FOR_GENDER.getName(), Integer.toString(Gender.FEMALE.getName()));
+    Boolean male = userGenderMap.get(userId);
+    male = male == null ? false : male;
+    record.put(UserInfoKey.FeatureInfoKey.LOOKING_FOR_GENDER.getName(), male ? Integer.toString(Gender.FEMALE.getName()) : Integer.toString(Gender.MALE.getName()));
     userInfo.setRecord(record);
 
     try {
@@ -173,8 +170,6 @@ public class MockMergerController {
 
       List<UserSuggestRecord> suggestedUsers = Lists.newArrayList();
       data.setUserSuggested(suggestedUsers);
-      Boolean male = userGenderMap.get(userId);
-      male = male == null ? false : male;
       List<Long> suggestUserIds = getSuggestUserIds(male, limit);
       data.setUserSuggested(getSuggestUsers(suggestUserIds, ! male));
       List<Long> boostUserIds = getSuggestUserIds(male, (int)(limit * 0.01));
@@ -225,6 +220,7 @@ public class MockMergerController {
       suggested.setDistance(random.nextFloat() * 10000);
       suggested.setPolularity(random.nextFloat());
       suggested.setStudy(random.nextInt(2));
+      suggested.setLastActivity(random.nextInt(84000));
       suggested.setBoostLevel(random.nextInt(5));
       suggested.setGender(male ? Gender.MALE.getName() : Gender.FEMALE.getName());
       users.add(suggested);
