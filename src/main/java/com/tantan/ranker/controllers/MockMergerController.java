@@ -162,6 +162,9 @@ public class MockMergerController {
     male = male == null ? false : male;
     record.put(UserInfoKey.FeatureInfoKey.LOOKING_FOR_GENDER.getName(), male ? Integer.toString(Gender.FEMALE.getName()) : Integer.toString(Gender.MALE.getName()));
     userInfo.setRecord(record);
+    data.setCounterResponse(new CounterResponse(0, "", Lists.newArrayList()));
+    data.setpCounterResponse(new CounterResponse(0, "", Lists.newArrayList()));
+    data.setFilterSearchResult(new FilterSearchResult(0, "", Lists.newArrayList(), Lists.newArrayList(), Lists.newArrayList(), Lists.newArrayList()));
 
     try {
       Random random = new Random();
