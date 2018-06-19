@@ -148,6 +148,8 @@ public class MockMergerController {
                                 @RequestParam(value = "limit", defaultValue = "25") Integer limit) {
 
     long start = System.currentTimeMillis();
+    Random random = new Random();
+    random.setSeed(start);
     AIResp resp = new AIResp();
     resp.setMeta(new Meta(200, "OK"));
     AIData data = new AIData();
@@ -157,18 +159,14 @@ public class MockMergerController {
     userInfo.setReason("");
     userInfo.setStatus(0);
     userInfo.setType("ALL");
-    Map<String, String> record = new HashMap<>();
     Boolean male = userGenderMap.get(userId);
     male = male == null ? false : male;
-    record.put(UserInfoKey.FeatureInfoKey.LOOKING_FOR_GENDER.getName(), male ? Integer.toString(Gender.FEMALE.getName()) : Integer.toString(Gender.MALE.getName()));
-    userInfo.setRecord(record);
-    data.setCounterResponse(new CounterResponse(0, "", Lists.newArrayList()));
-    data.setpCounterResponse(new CounterResponse(0, "", Lists.newArrayList()));
+    userInfo.setRecord(getUserRecord(userId, male));
+    data.setCounterResponse(new CounterResponse(0, "", getCounterRecord(userId, random)));
+    data.setpCounterResponse(new CounterResponse(0, "", getPCounterRecord(userId, random)));
     data.setFilterSearchResult(new FilterSearchResult(0, "", Lists.newArrayList(), Lists.newArrayList(), Lists.newArrayList(), Lists.newArrayList()));
 
     try {
-      Random random = new Random();
-      random.setSeed(System.currentTimeMillis());
       Thread.sleep((long) (Math.max(10, Math.sqrt(50) * random.nextGaussian() + 20))); // Gaussian random delay
 
       List<UserSuggestRecord> suggestedUsers = Lists.newArrayList();
@@ -188,6 +186,45 @@ public class MockMergerController {
 
     return resp;
   }
+
+  private Map<String, String> getUserRecord(Long userId, boolean male) {
+    Map<String, String> record = new HashMap<>();
+    record.put(UserInfoKey.ID.getName(), Long.toString(userId));
+    record.put(UserInfoKey.GENDER.getName(), male ? Integer.toString(Gender.MALE.getName()) : Integer.toString(Gender.FEMALE.getName()));
+    record.put(UserInfoKey.LOOKING_FOR_GENDER.getName(), male ? Integer.toString(Gender.FEMALE.getName()) : Integer.toString(Gender.MALE.getName()));
+    return record;
+  }
+
+  private List<CounterRecord> getCounterRecord(long userId, Random random) {
+    List<CounterRecord> records = Lists.newArrayList();
+    CounterRecord record0 = new CounterRecord();
+    record0.setUserId(userId);
+    record0.setType(CounterType.COUNTER_LIKE_RATING);
+    record0.setCount(random.nextInt(150));
+    records.add(record0);
+    CounterRecord record1 = new CounterRecord();
+    record1.setUserId(userId);
+    record1.setType(CounterType.COUNTER_MATCHED);
+    record1.setCount(random.nextInt(3));
+    records.add(record1);
+    return records;
+  }
+
+  private List<CounterRecord> getPCounterRecord(long userId, Random random) {
+    List<CounterRecord> records = Lists.newArrayList();
+    List<Integer> types = Lists.newArrayList(CounterType.COUNTER_LIKED, CounterType.COUNTER_DISLIKED, CounterType.COUNTER_DEFAULT,
+        CounterType.COUNTER_BLOCKED, CounterType.COUNTER_SUPERLIKED);
+    for (Integer type : types) {
+      CounterRecord record = new CounterRecord();
+      record.setUserId(userId);
+      record.setType(type);
+      record.setCount(random.nextInt(5));
+      records.add(record);
+    }
+    return records;
+  }
+
+
 
   private List<Long> getSuggestUserIds(boolean male, int limit) {
     List<Long> userIds = Lists.newArrayList();
