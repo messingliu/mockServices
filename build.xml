@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="mock-Merger" default="start" basedir=".">
+    <target name="start">
+        <echo>Starting mock Merger</echo>
+        <java fork="true" jar="mockServices-0.1.0.jar" spawn="true">
+            <jvmarg value="-Dspring.config.location=application.properties" />
+        </java>
+    </target>
+
+    <target name="stop">
+        <echo>Stop mock-Merger></echo>
+        <exec executable="bash">
+            <arg value="-c"/>
+            <arg value="jps -l | grep mockServices | awk -F' ' '{print $1}'| xargs -t kill -9"/>
+        </exec>
+    </target>
+</project>
