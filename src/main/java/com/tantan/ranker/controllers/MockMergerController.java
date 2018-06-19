@@ -205,7 +205,7 @@ public class MockMergerController {
     CounterRecord record1 = new CounterRecord();
     record1.setUserId(userId);
     record1.setType(CounterType.COUNTER_MATCHED);
-    record1.setCount(random.nextInt(3));
+    record1.setCount(random.nextInt(50));
     records.add(record1);
     return records;
   }
@@ -218,7 +218,7 @@ public class MockMergerController {
       CounterRecord record = new CounterRecord();
       record.setUserId(userId);
       record.setType(type);
-      record.setCount(random.nextInt(5));
+      record.setCount(random.nextInt(500));
       records.add(record);
     }
     return records;
