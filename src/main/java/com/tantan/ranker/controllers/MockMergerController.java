@@ -34,20 +34,24 @@ public class MockMergerController {
       fileReader = new FileReader("user_ids");
       BufferedReader bufferedReader = new BufferedReader(fileReader);
       String line;
+      int errors = 0;
       while ((line = bufferedReader.readLine()) != null) {
         try {
-          String[] lines = line.split("\t");
+          String[] lines = line.trim().split("[\t ]+");
           long userId = Long.parseLong(lines[0].trim());
-          boolean male = 1 == Integer.parseInt(lines[1].trim());
+          String genderStr = lines[1].trim();
+          boolean male = ("male".equalsIgnoreCase(genderStr) || "1".equalsIgnoreCase(genderStr));
           if (male) {
             maleUsers.add(userId);
           } else {
             femaleUsers.add(userId);
           }
           userGenderMap.put(userId, male);
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+          errors++;
+        }
       }
-      LOGGER.info("Read {} user ids", userGenderMap.size());
+      LOGGER.info("Read {} user ids, {} error lines", userGenderMap.size(), errors);
       bufferedReader.close();
       fileReader.close();
     } catch (Exception e) {
