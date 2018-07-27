@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 public class MockMergerController {
@@ -24,6 +25,8 @@ public class MockMergerController {
   private static Map<Long, Boolean> userGenderMap = new HashMap<>(); // true: male
   private static List<Long> maleUsers = new ArrayList<>();
   private static List<Long> femaleUsers = new ArrayList<>();
+  private AtomicInteger offsetMale = new AtomicInteger(0);
+  private AtomicInteger offsetFemale = new AtomicInteger(0);
 
   @Autowired
   private ConfigureService configureService;
@@ -229,25 +232,35 @@ public class MockMergerController {
   }
 
 
-
   private List<Long> getSuggestUserIds(boolean male, int limit) {
     List<Long> userIds = Lists.newArrayList();
     if (limit <=0 || limit > 100000) {
       return userIds;
     }
-    Set<Long> set = new HashSet<>();
-    List<Long> userList = male ? femaleUsers : maleUsers;
-    Random random = new Random();
-    random.setSeed(System.currentTimeMillis());
-    while (set.size() < limit) {
-      Long id = userList.get(random.nextInt(userList.size()));
-      if (! set.contains(id)) {
-        set.add(id);
-        userIds.add(id);
-      }
+    if (male) {
+      return getSubList(femaleUsers, limit, offsetFemale);
+    } else {
+      return getSubList(maleUsers, limit, offsetMale);
     }
+  }
 
-    return userIds;
+  private List<Long> getSubList(List<Long> list, int limit, AtomicInteger atomicInteger) {
+    int offset = atomicInteger.get();
+    limit = Math.min(limit, list.size());
+    if (offset >= list.size()) {
+      offset = 0;
+    }
+    if ((offset + limit) <= list.size()) {
+      atomicInteger.getAndAdd(limit);
+      return list.subList(offset, offset + limit);
+    } else {
+      List<Long> subList = Lists.newArrayList();
+      subList.addAll(list.subList(offset, list.size()));
+      int newOffset = limit - (list.size() - offset);
+      subList.addAll(list.subList(0, newOffset));
+      atomicInteger.set(newOffset);
+      return subList;
+    }
   }
 
   private List<UserSuggestRecord> getSuggestUsers(List<Long> userIds, boolean male) {
